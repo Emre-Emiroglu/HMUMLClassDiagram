@@ -1,0 +1,23 @@
+{
+  "name": "com.emreemiroglu.hmumlclassdiagram",
+  "version": "1.0.0",
+  "displayName": "HMUMLClassDiagram",
+  "description": "HMUMLClassDiagram is a...",
+  "icon": "icon.png",
+  "author": {
+    "name": "Emre Emiroglu",
+    "email": "emirogluemre08@gmail.com",
+    "url": "https://github.com/Emre-Emiroglu"
+  },
+  "keywords": [
+    "event-driven",
+    "pub-sub",
+    "signal",
+    "communication",
+    "unity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Emre-Emiroglu/HMSignalBus.git"
+  }
+}
