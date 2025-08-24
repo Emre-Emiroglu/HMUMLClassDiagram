@@ -7,13 +7,6 @@ namespace HMUMLClassDiagram.Editor
 {
     public sealed class UmlClassDiagramEditor : EditorWindow
     {
-        #region Constants
-        private const string MenuItemName = "Tools/HMUMLClassDiagram/UmlClassDiagramEditor";
-        private const string EditorTitleName = "Uml Class Diagram Editor";
-        private const string AddClassNodeName = "Add Class Node";
-        private const string UmlClassDataNewClassName = "New Class";
-        #endregion
-
         #region ReadonlyFields
         private readonly List<UmlClassNode> _classNodes = new();
         private readonly List<UmlRelationshipNode> _relationshipNodes = new();
@@ -28,8 +21,8 @@ namespace HMUMLClassDiagram.Editor
         #endregion
 
         #region Core
-        [MenuItem(MenuItemName)]
-        private static void OpenWindow() => GetWindow<UmlClassDiagramEditor>(EditorTitleName);
+        [MenuItem("Tools/HMUMLClassDiagram/UmlClassDiagramEditor")]
+        private static void OpenWindow() => GetWindow<UmlClassDiagramEditor>("Uml Class Diagram Editor");
         private void OnGUI()
         {
             DrawGrid(32, .25f, Color.gray);
@@ -369,27 +362,99 @@ namespace HMUMLClassDiagram.Editor
         private void HandleContextClick(Event e)
         {
             _contextClickPosition = e.mousePosition;
-                    
-            ShowContextMenu();
-                    
+
+            UmlClassNode clickedNode = GetNodeAtPosition(e.mousePosition);
+
+            if (clickedNode != null)
+                ShowNodeContextMenu(clickedNode);
+            else
+                ShowGlobalContextMenu();
+
             e.Use();
         }
-        private UmlClassNode GetNodeAtPosition(Vector2 pos) => _classNodes.FirstOrDefault(classNode => classNode.rect.Contains(pos));
-        private void ShowContextMenu()
+        private UmlClassNode GetNodeAtPosition(Vector2 pos) =>
+            _classNodes.FirstOrDefault(classNode => classNode.rect.Contains(pos));
+        private void ShowNodeContextMenu(UmlClassNode node)
         {
-            GenericMenu genericMenu = new GenericMenu();
+            GenericMenu menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent("Edit/Set Class Name"), false, () =>
+            {
+                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
+                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
+
+                PopupWindow.Show(rect, new TextInputPopup("Class Name", node.classData.className, newValue =>
+                {
+                    node.classData.className = newValue;
+                    GUI.changed = true;
+                }));
+            });
+
+            menu.AddItem(new GUIContent("Edit/Set Namespace"), false, () =>
+            {
+                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
+                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
+
+                PopupWindow.Show(rect, new TextInputPopup("Namespace", node.classData.namespaceName, newValue =>
+                {
+                    node.classData.namespaceName = newValue;
+                    GUI.changed = true;
+                }));
+            });
+
+            menu.AddSeparator("Edit/");
             
-            genericMenu.AddItem(new GUIContent(AddClassNodeName), false, OnClickAddClassNode);
-            genericMenu.ShowAsContext();
+            menu.AddItem(new GUIContent("Edit/Toggle Abstract"), false, () => OnClickToggleAbstract(node));
+            menu.AddItem(new GUIContent("Edit/Toggle Interface"), false, () => OnClickToggleInterface(node));
+            
+            menu.AddSeparator("");
+            
+            menu.AddItem(new GUIContent("Delete Node"), false, () => OnClickDeleteNode(node));
+
+            menu.ShowAsContext();
+        }
+        private void ShowGlobalContextMenu()
+        {
+            GenericMenu menu = new GenericMenu();
+            
+            menu.AddItem(new GUIContent("Add Class Node"), false, OnClickAddClassNode);
+            menu.ShowAsContext();
         }
         private void OnClickAddClassNode()
         {
             UmlClassData umlClassData = CreateInstance<UmlClassData>();
-            umlClassData.className = UmlClassDataNewClassName;
+            umlClassData.className = "New Class";
 
             UmlClassNode newNode = new(umlClassData, _contextClickPosition);
             _classNodes.Add(newNode);
 
+            GUI.changed = true;
+        }
+        #endregion
+
+        #region InputCallbacks
+        private static void OnClickToggleAbstract(UmlClassNode node)
+        {
+            node.classData.isAbstract = !node.classData.isAbstract;
+            
+            if (node.classData.isAbstract)
+                node.classData.isInterface = false;
+            
+            GUI.changed = true;
+        }
+        private static void OnClickToggleInterface(UmlClassNode node)
+        {
+            node.classData.isInterface = !node.classData.isInterface;
+            
+            if (node.classData.isInterface)
+                node.classData.isAbstract = false;
+            
+            GUI.changed = true;
+        }
+        private void OnClickDeleteNode(UmlClassNode node)
+        {
+            _classNodes.Remove(node);
+            
             GUI.changed = true;
         }
         #endregion
