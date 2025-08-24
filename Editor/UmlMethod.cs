@@ -4,10 +4,11 @@ using System.Collections.Generic;
 namespace HMUMLClassDiagram.Editor
 {
     [Serializable]
-    public class UmlMethod
+    public sealed class UmlMethod
     {
+        #region Fields
         public string name;
-        public UmlAccessModifier accessModifier;
+        public UmlAccessModifierType accessModifierType;
         public UmlType returnType;
         public string customReturnTypeName;
         public bool isStatic;
@@ -16,5 +17,6 @@ namespace HMUMLClassDiagram.Editor
         public bool isOverride;
         public bool useBase;
         public List<UmlParameter> parameters = new();
+        #endregion
     }
 }

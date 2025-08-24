@@ -3,10 +3,12 @@
 namespace HMUMLClassDiagram.Editor
 {
     [Serializable]
-    public class UmlParameter
+    public sealed class UmlParameter
     {
+        #region Fields
         public string name;
         public UmlType type;
         public string customTypeName;
+        #endregion
     }
 }

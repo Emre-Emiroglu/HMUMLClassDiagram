@@ -1,6 +1,6 @@
 ﻿namespace HMUMLClassDiagram.Editor
 {
-    public enum UmlAccessModifier
+    public enum UmlAccessModifierType
     {
         Public,
         Private,

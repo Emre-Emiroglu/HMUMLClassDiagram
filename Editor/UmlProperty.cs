@@ -3,13 +3,15 @@
 namespace HMUMLClassDiagram.Editor
 {
     [Serializable]
-    public class UmlProperty
+    public sealed class UmlProperty
     {
+        #region Fields
         public string name;
-        public UmlAccessModifier accessModifier;
+        public UmlAccessModifierType accessModifierType;
         public UmlType type;
         public string customTypeName;
         public bool hasGetter = true;
         public bool hasSetter = true;
+        #endregion
     }
 }
