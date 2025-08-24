@@ -85,27 +85,23 @@ namespace HMUMLClassDiagram.Editor
         }
         private static GUIStyle GetClassNodeStyle()
         {
-            GUIStyle nodeStyle = new GUIStyle(GUI.skin.box)
+            return new GUIStyle(GUI.skin.box)
             {
                 normal =
                 {
                     background = Texture2D.whiteTexture,
-                    textColor =  Color.black
+                    textColor = Color.black
                 },
                 alignment = TextAnchor.UpperCenter,
                 fontStyle = FontStyle.Bold
             };
-            
-            return nodeStyle;
         }
         private static float UmlClassNodeDrawHeader(UmlClassNode classNode, GUIStyle nodeStyle)
         {
             float headerHeight = UmlClassNodeSetupHeaderHeight(classNode, nodeStyle, out var drawY);
 
             drawY = UmlClassNodeDrawNamespace(classNode, drawY);
-            
             drawY = UmlClassNodeDrawClassTypeIcon(classNode, drawY);
-
             UmlClassNodeDrawClassName(classNode, drawY);
 
             return headerHeight; 
@@ -128,7 +124,6 @@ namespace HMUMLClassDiagram.Editor
             float headerHeight = 40;
             
             Rect headerRect = new Rect(0, 0, classNode.rect.width, headerHeight);
-            
             GUI.Box(headerRect, GUIContent.none); 
 
             drawY = 2;
@@ -140,7 +135,7 @@ namespace HMUMLClassDiagram.Editor
             if (string.IsNullOrEmpty(classNode.classData.namespaceName))
                 return drawY;
             
-            GUIStyle nsStyle = new GUIStyle(EditorStyles.label)
+            GUIStyle nsStyle = new GUIStyle
             {
                 fontSize = 9,
                 fontStyle = FontStyle.Italic,
@@ -149,11 +144,9 @@ namespace HMUMLClassDiagram.Editor
             };
             
             Rect nsRect = new Rect(0, drawY, classNode.rect.width, 14);
-            
             GUI.Label(nsRect, classNode.classData.namespaceName, nsStyle);
             
             drawY += 14;
-
             return drawY;
         }
         private static float UmlClassNodeDrawClassTypeIcon(UmlClassNode classNode, float drawY)
@@ -179,14 +172,13 @@ namespace HMUMLClassDiagram.Editor
             if (icon)
             {
                 Rect iconRect = new Rect(5, drawY, 16, 16);
-                
                 GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
             }
 
             if (string.IsNullOrEmpty(typeLabel))
                 return drawY;
             
-            GUIStyle typeStyle = new GUIStyle(EditorStyles.label)
+            GUIStyle typeStyle = new GUIStyle
             {
                 fontSize = 10,
                 fontStyle = FontStyle.Italic,
@@ -195,24 +187,22 @@ namespace HMUMLClassDiagram.Editor
             };
             
             Rect typeRect = new Rect(24, drawY, classNode.rect.width - 24, 16);
-            
             GUI.Label(typeRect, typeLabel, typeStyle);
             
             drawY += 16;
-
             return drawY;
         }
         private static void UmlClassNodeDrawClassName(UmlClassNode classNode, float drawY)
         {
-            GUIStyle nameStyle = new GUIStyle(EditorStyles.boldLabel)
+            GUIStyle nameStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 12,
+                fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.black }
             };
             
             Rect nameRect = new Rect(0, drawY, classNode.rect.width, 18);
-            
             GUI.Label(nameRect, classNode.classData.className, nameStyle);
         }
         private float UmlClassNodeDrawFields(UmlClassNode classNode, float drawY)
@@ -221,16 +211,13 @@ namespace HMUMLClassDiagram.Editor
                 return drawY;
             
             DrawHorizontalLine(drawY);
-            
             drawY += 2;
 
             foreach (UmlField field in classNode.classData.fields)
             {
                 Rect fieldRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
-                
                 GUI.Label(fieldRect,
                     $"{field.accessModifierType.ToString().ToLower()} {field.name} : {GetTypeString(field.type, field.customTypeName)}");
-                
                 drawY += 18;
             }
 
@@ -242,16 +229,13 @@ namespace HMUMLClassDiagram.Editor
                 return drawY;
             
             DrawHorizontalLine(drawY);
-            
             drawY += 2;
 
             foreach (UmlProperty prop in classNode.classData.properties)
             {
                 Rect propRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
-                
                 GUI.Label(propRect,
                     $"{prop.accessModifierType.ToString().ToLower()} {prop.name} : {GetTypeString(prop.type, prop.customTypeName)} {{get; set;}}");
-                
                 drawY += 18;
             }
 
@@ -263,16 +247,13 @@ namespace HMUMLClassDiagram.Editor
                 return;
             
             DrawHorizontalLine(drawY);
-            
             drawY += 2;
 
             foreach (UmlMethod method in classNode.classData.methods)
             {
                 Rect methodRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
-                
                 GUI.Label(methodRect,
                     $"{method.accessModifierType.ToString().ToLower()} {GetTypeString(method.returnType, method.customReturnTypeName)} {method.name}()");
-                
                 drawY += 18;
             }
         }
@@ -325,7 +306,6 @@ namespace HMUMLClassDiagram.Editor
             if (_selectedNode != null)
             {
                 _isDraggingNode = true;
-                            
                 GUI.changed = true;
             }
             else
@@ -346,16 +326,13 @@ namespace HMUMLClassDiagram.Editor
             if (_isDraggingNode && _selectedNode != null)
             {
                 _selectedNode.rect.position += e.delta;
-                            
                 GUI.changed = true;
             }
             else
             {
                 _drag = e.delta;
-
                 foreach (UmlClassNode classNode in _classNodes)
                     classNode.rect.position += e.delta;
-
                 GUI.changed = true;
             }
         }
@@ -403,12 +380,9 @@ namespace HMUMLClassDiagram.Editor
             });
 
             menu.AddSeparator("Edit/");
-            
             menu.AddItem(new GUIContent("Edit/Toggle Abstract"), false, () => OnClickToggleAbstract(node));
             menu.AddItem(new GUIContent("Edit/Toggle Interface"), false, () => OnClickToggleInterface(node));
-            
             menu.AddSeparator("");
-            
             menu.AddItem(new GUIContent("Delete Node"), false, () => OnClickDeleteNode(node));
 
             menu.ShowAsContext();
@@ -416,7 +390,6 @@ namespace HMUMLClassDiagram.Editor
         private void ShowGlobalContextMenu()
         {
             GenericMenu menu = new GenericMenu();
-            
             menu.AddItem(new GUIContent("Add Class Node"), false, OnClickAddClassNode);
             menu.ShowAsContext();
         }
