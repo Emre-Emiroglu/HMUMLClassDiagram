@@ -1,4 +1,4 @@
-﻿namespace HMUMLClassDiagram.Editor
+﻿namespace HMUMLClassDiagram.Editor.Enums
 {
     public enum UmlRelationshipType
     {

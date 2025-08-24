@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HMUMLClassDiagram.Editor.Data;
+using HMUMLClassDiagram.Editor.EditPopUps;
+using HMUMLClassDiagram.Editor.Enums;
+using HMUMLClassDiagram.Editor.Nodes;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +14,9 @@ namespace HMUMLClassDiagram.Editor
         #region ReadonlyFields
         private readonly List<UmlClassNode> _classNodes = new();
         private readonly List<UmlRelationshipNode> _relationshipNodes = new();
+        private readonly Dictionary<Rect, UmlField> _fieldRects = new();
+        private readonly Dictionary<Rect, UmlProperty> _propertyRects = new();
+        private readonly Dictionary<Rect, UmlMethod> _methodRects = new();
         #endregion
         
         #region Fields
@@ -65,6 +72,10 @@ namespace HMUMLClassDiagram.Editor
         #region DrawClassNodes
         private void DrawClassNodes()
         {
+            _fieldRects.Clear();
+            _propertyRects.Clear();
+            _methodRects.Clear();
+
             GUIStyle nodeStyle = GetClassNodeStyle();
             
             foreach (UmlClassNode classNode in _classNodes)
@@ -75,9 +86,7 @@ namespace HMUMLClassDiagram.Editor
                 float drawY = UmlClassNodeDrawHeader(classNode, nodeStyle);
 
                 drawY = UmlClassNodeDrawFields(classNode, drawY);
-
                 drawY = UmlClassNodeDrawProperties(classNode, drawY);
-
                 UmlClassNodeDrawMethods(classNode, drawY);
 
                 GUI.EndGroup();
@@ -122,12 +131,10 @@ namespace HMUMLClassDiagram.Editor
             GUI.BeginGroup(classNode.rect, nodeStyle);
 
             float headerHeight = 40;
-            
             Rect headerRect = new Rect(0, 0, classNode.rect.width, headerHeight);
             GUI.Box(headerRect, GUIContent.none); 
 
             drawY = 2;
-            
             return headerHeight;
         }
         private static float UmlClassNodeDrawNamespace(UmlClassNode classNode, float drawY)
@@ -218,6 +225,10 @@ namespace HMUMLClassDiagram.Editor
                 Rect fieldRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
                 GUI.Label(fieldRect,
                     $"{field.accessModifierType.ToString().ToLower()} {field.name} : {GetTypeString(field.type, field.customTypeName)}");
+
+                Rect worldRect = new Rect(fieldRect.x + classNode.rect.x, fieldRect.y + classNode.rect.y, fieldRect.width, fieldRect.height);
+                _fieldRects[worldRect] = field;
+
                 drawY += 18;
             }
 
@@ -236,6 +247,10 @@ namespace HMUMLClassDiagram.Editor
                 Rect propRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
                 GUI.Label(propRect,
                     $"{prop.accessModifierType.ToString().ToLower()} {prop.name} : {GetTypeString(prop.type, prop.customTypeName)} {{get; set;}}");
+
+                Rect worldRect = new Rect(propRect.x + classNode.rect.x, propRect.y + classNode.rect.y, propRect.width, propRect.height);
+                _propertyRects[worldRect] = prop;
+
                 drawY += 18;
             }
 
@@ -254,6 +269,10 @@ namespace HMUMLClassDiagram.Editor
                 Rect methodRect = new Rect(5, drawY, classNode.rect.width - 10, 16);
                 GUI.Label(methodRect,
                     $"{method.accessModifierType.ToString().ToLower()} {GetTypeString(method.returnType, method.customReturnTypeName)} {method.name}()");
+
+                Rect worldRect = new Rect(methodRect.x + classNode.rect.x, methodRect.y + classNode.rect.y, methodRect.width, methodRect.height);
+                _methodRects[worldRect] = method;
+
                 drawY += 18;
             }
         }
@@ -340,8 +359,36 @@ namespace HMUMLClassDiagram.Editor
         {
             _contextClickPosition = e.mousePosition;
 
-            UmlClassNode clickedNode = GetNodeAtPosition(e.mousePosition);
+            foreach (KeyValuePair<Rect, UmlField> kvp in _fieldRects.Where(kvp => kvp.Key.Contains(e.mousePosition)))
+            {
+                ShowFieldContextMenu(kvp.Value);
+                
+                e.Use();
+                
+                return;
+            }
 
+            foreach (KeyValuePair<Rect, UmlProperty> kvp in _propertyRects.Where(kvp =>
+                         kvp.Key.Contains(e.mousePosition))) 
+            {
+                ShowPropertyContextMenu(kvp.Value);
+                
+                e.Use();
+                
+                return;
+            }
+
+            foreach (KeyValuePair<Rect, UmlMethod> kvp in _methodRects.Where(kvp => kvp.Key.Contains(e.mousePosition)))
+            {
+                ShowMethodContextMenu(kvp.Value);
+                
+                e.Use();
+                
+                return;
+            }
+
+            UmlClassNode clickedNode = GetNodeAtPosition(e.mousePosition);
+            
             if (clickedNode != null)
                 ShowNodeContextMenu(clickedNode);
             else
@@ -349,59 +396,98 @@ namespace HMUMLClassDiagram.Editor
 
             e.Use();
         }
+        #endregion
+
+        #region Context Menus
         private UmlClassNode GetNodeAtPosition(Vector2 pos) =>
             _classNodes.FirstOrDefault(classNode => classNode.rect.Contains(pos));
         private void ShowNodeContextMenu(UmlClassNode node)
         {
             GenericMenu menu = new GenericMenu();
-
-            menu.AddItem(new GUIContent("Edit/Set Class Name"), false, () =>
-            {
-                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
-                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
-
-                PopupWindow.Show(rect, new TextInputPopup("Class Name", node.classData.className, newValue =>
-                {
-                    node.classData.className = newValue;
-                    GUI.changed = true;
-                }));
-            });
-
-            menu.AddItem(new GUIContent("Edit/Set Namespace"), false, () =>
-            {
-                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
-                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
-
-                PopupWindow.Show(rect, new TextInputPopup("Namespace", node.classData.namespaceName, newValue =>
-                {
-                    node.classData.namespaceName = newValue;
-                    GUI.changed = true;
-                }));
-            });
-
-            menu.AddSeparator("Edit/");
+            
+            menu.AddItem(new GUIContent("Edit/Set Class Name"), false, () => { /* popup */ });
+            menu.AddItem(new GUIContent("Edit/Set Namespace"), false, () => { /* popup */ });
             menu.AddItem(new GUIContent("Edit/Toggle Abstract"), false, () => OnClickToggleAbstract(node));
             menu.AddItem(new GUIContent("Edit/Toggle Interface"), false, () => OnClickToggleInterface(node));
-            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Members/Add Field"), false, () => OnClickAddField(node));
+            menu.AddItem(new GUIContent("Members/Add Property"), false, () => OnClickAddProperty(node));
+            menu.AddItem(new GUIContent("Members/Add Method"), false, () => OnClickAddMethod(node));
             menu.AddItem(new GUIContent("Delete Node"), false, () => OnClickDeleteNode(node));
-
+            
             menu.ShowAsContext();
         }
         private void ShowGlobalContextMenu()
         {
             GenericMenu menu = new GenericMenu();
+            
             menu.AddItem(new GUIContent("Add Class Node"), false, OnClickAddClassNode);
             menu.ShowAsContext();
         }
-        private void OnClickAddClassNode()
+        private void ShowFieldContextMenu(UmlField field)
         {
-            UmlClassData umlClassData = CreateInstance<UmlClassData>();
-            umlClassData.className = "New Class";
+            GenericMenu menu = new GenericMenu();
+            
+            menu.AddItem(new GUIContent("Edit Field"), false, () =>
+            {
+                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
+                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
+                
+                PopupWindow.Show(rect, new FieldEditPopup(field, () => GUI.changed = true));
+            });
+            
+            menu.AddItem(new GUIContent("Delete Field"), false, () =>
+            {
+                foreach (UmlClassNode unused in _classNodes.Where(node => node.classData.fields.Remove(field)))
+                    break;
+                
+                GUI.changed = true;
+            });
+            
+            menu.ShowAsContext();
+        }
+        private void ShowPropertyContextMenu(UmlProperty prop)
+        {
+            GenericMenu menu = new GenericMenu();
+            
+            menu.AddItem(new GUIContent("Edit Property"), false, () =>
+            {
+                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
+                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
+                
+                PopupWindow.Show(rect, new PropertyEditPopup(prop, () => GUI.changed = true));
+            });
+            
+            menu.AddItem(new GUIContent("Delete Property"), false, () =>
+            {
+                foreach (UmlClassNode unused in _classNodes.Where(node => node.classData.properties.Remove(prop)))
+                    break;
+                
+                GUI.changed = true;
+            });
+            
+            menu.ShowAsContext();
+        }
+        private void ShowMethodContextMenu(UmlMethod method)
+        {
+            GenericMenu menu = new GenericMenu();
+            
+            menu.AddItem(new GUIContent("Edit Method"), false, () =>
+            {
+                Vector2 screenPos = GUIUtility.GUIToScreenPoint(_contextClickPosition);
+                Rect rect = new Rect(screenPos.x, screenPos.y, 0, 0);
+                
+                PopupWindow.Show(rect, new MethodEditPopup(method, () => GUI.changed = true));
+            });
+            
+            menu.AddItem(new GUIContent("Delete Method"), false, () =>
+            {
+                foreach (UmlClassNode unused in _classNodes.Where(node => node.classData.methods.Remove(method)))
+                    break;
 
-            UmlClassNode newNode = new(umlClassData, _contextClickPosition);
-            _classNodes.Add(newNode);
-
-            GUI.changed = true;
+                GUI.changed = true;
+            });
+            
+            menu.ShowAsContext();
         }
         #endregion
 
@@ -424,14 +510,56 @@ namespace HMUMLClassDiagram.Editor
             
             GUI.changed = true;
         }
+        private static void OnClickAddField(UmlClassNode node)
+        {
+            node.classData.fields.Add(new UmlField
+            {
+                name = "NewField",
+                accessModifierType = UmlAccessModifierType.Private,
+                type = UmlType.Int
+            });
+            
+            GUI.changed = true;
+        }
+        private static void OnClickAddProperty(UmlClassNode node)
+        {
+            node.classData.properties.Add(new UmlProperty
+            {
+                name = "NewProperty",
+                accessModifierType = UmlAccessModifierType.Public,
+                type = UmlType.String
+            });
+            
+            GUI.changed = true;
+        }
+        private static void OnClickAddMethod(UmlClassNode node)
+        {
+            node.classData.methods.Add(new UmlMethod
+            {
+                name = "NewMethod",
+                accessModifierType = UmlAccessModifierType.Public,
+                returnType = UmlType.Void
+            });
+            
+            GUI.changed = true;
+        }
         private void OnClickDeleteNode(UmlClassNode node)
         {
             _classNodes.Remove(node);
             
             GUI.changed = true;
         }
+        private void OnClickAddClassNode()
+        {
+            UmlClassData umlClassData = CreateInstance<UmlClassData>();
+            umlClassData.className = "New Class";
+            UmlClassNode newNode = new(umlClassData, _contextClickPosition);
+            _classNodes.Add(newNode);
+            
+            GUI.changed = true;
+        }
         #endregion
-        
+
         #region HelperUtilities
         private static string GetTypeString(UmlType type, string customType)
         {

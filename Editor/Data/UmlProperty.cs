@@ -1,18 +1,18 @@
 ﻿using System;
+using HMUMLClassDiagram.Editor.Enums;
 
-namespace HMUMLClassDiagram.Editor
+namespace HMUMLClassDiagram.Editor.Data
 {
     [Serializable]
-    public sealed class UmlField
+    public sealed class UmlProperty
     {
         #region Fields
         public string name;
         public UmlAccessModifierType accessModifierType;
         public UmlType type;
         public string customTypeName;
-        public bool isStatic;
-        public bool isReadonly;
-        public bool isConst;
+        public bool hasGetter = true;
+        public bool hasSetter = true;
         #endregion
     }
 }

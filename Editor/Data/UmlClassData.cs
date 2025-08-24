@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace HMUMLClassDiagram.Editor
+namespace HMUMLClassDiagram.Editor.Data
 {
     [CreateAssetMenu(fileName = "NewUMLClassData", menuName = "Tools/HMUMLClassDiagram/UMLClassData")]
     public sealed class UmlClassData : ScriptableObject

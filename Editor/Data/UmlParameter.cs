@@ -1,6 +1,7 @@
 ﻿using System;
+using HMUMLClassDiagram.Editor.Enums;
 
-namespace HMUMLClassDiagram.Editor
+namespace HMUMLClassDiagram.Editor.Data
 {
     [Serializable]
     public sealed class UmlParameter

@@ -1,7 +1,8 @@
 ﻿using System;
+using HMUMLClassDiagram.Editor.Data;
 using UnityEngine;
 
-namespace HMUMLClassDiagram.Editor
+namespace HMUMLClassDiagram.Editor.Nodes
 {
     [Serializable]
     public sealed class UmlRelationshipNode

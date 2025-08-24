@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HMUMLClassDiagram.Editor
+namespace HMUMLClassDiagram.Editor.Data
 {
     [CreateAssetMenu(fileName = "NewUMLRelationshipData", menuName = "Tools/HMUMLClassDiagram/UMLRelationshipData")]
     public sealed class UmlRelationshipData : ScriptableObject
